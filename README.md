@@ -1,0 +1,2 @@
+# BillingGate-SDK
+aaaaAAAAAAAAAAAA

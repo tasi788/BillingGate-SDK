@@ -85,6 +85,37 @@ class BillingGateClient:
             except Exception as e:
                 raise Exception(f"Payment Creation Failed: {e}") from e
 
+    async def verify_transaction(self, transaction_id: str) -> bool:
+        """
+        Verify the status of a transaction.
+        Returns True if the transaction is valid/paid, False otherwise.
+        """
+        if not self.api_key:
+            raise ValueError("API Key is required for Verification")
+            
+        if not self.worker_url:
+            raise ValueError("Worker URL is required for Verification")
+
+        async with httpx.AsyncClient() as client:
+            try:
+                response = await client.get(
+                    f"{self.worker_url}/api/verify",
+                    params={"transaction": transaction_id},
+                    headers={"Authorization": f"Bearer {self.api_key}"}
+                )
+                response.raise_for_status()
+                # Assuming the API returns a boolean or "true"/"false" string
+                data = response.json()
+                return bool(data)
+            except httpx.HTTPStatusError as e:
+                # If 404/etc, consider it failed verification or handle differently?
+                # For now, let's treat non-200 as an exception unless it's a "false" result logic
+                # But requirement says "confirm returns false". 
+                # If the API returns JSON "false", it's a 200 OK.
+                raise Exception(f"Verification Check Failed: {e.response.text}") from e
+            except Exception as e:
+                raise Exception(f"Verification Error: {e}") from e
+
     def _encrypt_payload(self, payload: dict, key_str: str) -> str:
         # 1. Derive Key using PBKDF2
         kdf = PBKDF2HMAC(

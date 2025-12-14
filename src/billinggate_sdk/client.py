@@ -14,6 +14,8 @@ class PaymentPayload(BaseModel):
     amount: int = Field(..., description="Amount in TWD")
     source: str
     callback_url: Optional[str] = None
+    photo_url: Optional[str] = None
+    query_path: Optional[str] = None
 
 class PaymentResponse(BaseModel):
     id: str
